@@ -4,7 +4,26 @@ struct Transform{F <: Function}
 end
 
 (t::Transform)(x::AV{<:Real}) = t.f.(x)
-(t::Transform)(x::ColVecs) = ColVecs(hcat(t.f.(x)...))
+(t::Transform)(x::ColVecs) = ColVecs(hcat(t.f.(x)...)) # In slow method error :<
+# (t::Transform)(x::ColVecs) = hcat(t.f.(x)...) # In slow method
+# (t::Transform)(x::ColVecs) = ColVecs(mapslices(t.f, x.X, dims=1))
+
+#=
+mapslices implementation make no sense since it finally behaves like "slow" method if
+    it follows "AD style" to get gradient.
+
+So we just disable ColVecs's error
+=#
+
+Zygote.@adjoint function ColVecs(X::AbstractMatrix)
+    back(Δ::NamedTuple) = (Δ.X,)
+    back(Δ::AbstractMatrix) = (Δ,)
+    function back(Δ::AbstractVector{<:AbstractVector{<:Real}})
+        (hcat(Δ...),)
+    end
+    return ColVecs(X), back
+end
+
 
 """
     LinearWithTransform{T<:Real} <: BaseKernel
