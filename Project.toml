@@ -8,6 +8,7 @@ Stheno = "8188c328-b5d6-583d-959b-9690869a5511"
 Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 
 [compat]
+Stheno = "0.6"
 julia = "1"
 
 [extras]
